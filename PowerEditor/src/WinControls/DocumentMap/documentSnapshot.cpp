@@ -29,29 +29,29 @@
 #include "documentSnapshot.h"
 #include "ScintillaEditView.h"
 
-INT_PTR CALLBACK DocumentPeeker::run_dlgProc(UINT message, WPARAM /*wParam*/, LPARAM /*lParam*/)
+INT_PTR CALLBACK DocumentSnapshot::run_dlgProc(UINT message, WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
 	switch (message)
 	{
         case WM_INITDIALOG :
 		{
 			HWND hwndScintilla = reinterpret_cast<HWND>(::SendMessage(_hParent, NPPM_CREATESCINTILLAHANDLE, 0, reinterpret_cast<LPARAM>(_hSelf)));
-			_pPeekerView = reinterpret_cast<ScintillaEditView *>(::SendMessage(_hParent, NPPM_INTERNAL_GETSCINTEDTVIEW, 0, reinterpret_cast<LPARAM>(hwndScintilla)));
-			_pPeekerView->execute(SCI_SETZOOM, static_cast<WPARAM>(-10), 0);
-			_pPeekerView->execute(SCI_SETVSCROLLBAR, FALSE, 0);
-			_pPeekerView->execute(SCI_SETHSCROLLBAR, FALSE, 0);
+			_pSnapshotView = reinterpret_cast<ScintillaEditView *>(::SendMessage(_hParent, NPPM_INTERNAL_GETSCINTEDTVIEW, 0, reinterpret_cast<LPARAM>(hwndScintilla)));
+			_pSnapshotView->execute(SCI_SETZOOM, static_cast<WPARAM>(-10), 0);
+			_pSnapshotView->execute(SCI_SETVSCROLLBAR, FALSE, 0);
+			_pSnapshotView->execute(SCI_SETHSCROLLBAR, FALSE, 0);
 
-			_pPeekerView->showIndentGuideLine(false);
+			_pSnapshotView->showIndentGuideLine(false);
 
-			::MoveWindow(_pPeekerView->getHSelf(), 0, 0, _rc.right - _rc.left, _rc.bottom - _rc.top, TRUE);
-			_pPeekerView->display();
+			::MoveWindow(_pSnapshotView->getHSelf(), 0, 0, _rc.right - _rc.left, _rc.bottom - _rc.top, TRUE);
+			_pSnapshotView->display();
 		}
 		break;
 	}
 	return FALSE;
 }
 
-void DocumentPeeker::doDialog(POINT p, Buffer *pBuf, ScintillaEditView & scintSource)
+void DocumentSnapshot::doDialog(POINT p, Buffer *pBuf, ScintillaEditView & scintSource)
 {
 	if (!isCreated())
 	{
@@ -59,27 +59,27 @@ void DocumentPeeker::doDialog(POINT p, Buffer *pBuf, ScintillaEditView & scintSo
 	}
 
 	syncDisplay(pBuf, scintSource);
-    // Adjust the position of DocumentPeeker
+    // Adjust the position of DocumentSnapshot
 	goTo(p);
 }
 
-void DocumentPeeker::goTo(POINT p)
+void DocumentSnapshot::goTo(POINT p)
 {
 	::SetWindowPos(_hSelf, HWND_TOP, p.x, p.y + 10, _rc.right - _rc.left, _rc.bottom - _rc.top, SWP_SHOWWINDOW);
 }
 
-void DocumentPeeker::syncDisplay(Buffer *buf, ScintillaEditView & scintSource)
+void DocumentSnapshot::syncDisplay(Buffer *buf, ScintillaEditView & scintSource)
 {
-	if (_pPeekerView)
+	if (_pSnapshotView)
 	{
-		_pPeekerView->execute(SCI_SETDOCPOINTER, 0, static_cast<LPARAM>(buf->getDocument()));
-		_pPeekerView->setCurrentBuffer(buf);
+		_pSnapshotView->execute(SCI_SETDOCPOINTER, 0, static_cast<LPARAM>(buf->getDocument()));
+		_pSnapshotView->setCurrentBuffer(buf);
 
 		//
 		// folding
 		//
 		const std::vector<size_t> & lineStateVector = buf->getHeaderLineState(&scintSource);
-		_pPeekerView->syncFoldStateWith(lineStateVector);
+		_pSnapshotView->syncFoldStateWith(lineStateVector);
 
 		//
 		// Wraping & scrolling
@@ -88,25 +88,25 @@ void DocumentPeeker::syncDisplay(Buffer *buf, ScintillaEditView & scintSource)
 		if (mp.isValid())
 			scrollSnapshotWith(mp);
 
-		Buffer *buf = _pPeekerView->getCurrentBuffer();
-		_pPeekerView->defineDocType(buf->getLangType());
-		_pPeekerView->showMargin(ScintillaEditView::_SC_MARGE_FOLDER, false);
+		Buffer *buf = _pSnapshotView->getCurrentBuffer();
+		_pSnapshotView->defineDocType(buf->getLangType());
+		_pSnapshotView->showMargin(ScintillaEditView::_SC_MARGE_FOLDER, false);
 
-		_pPeekerView->showMargin(0, false);
-		_pPeekerView->showMargin(1, false);
-		_pPeekerView->showMargin(2, false);
-		_pPeekerView->showMargin(3, false);
+		_pSnapshotView->showMargin(0, false);
+		_pSnapshotView->showMargin(1, false);
+		_pSnapshotView->showMargin(2, false);
+		_pSnapshotView->showMargin(3, false);
 
-		_pPeekerView->execute(SCI_SETREADONLY, true);
-		_pPeekerView->execute(SCI_SETCARETSTYLE, CARETSTYLE_INVISIBLE);
+		_pSnapshotView->execute(SCI_SETREADONLY, true);
+		_pSnapshotView->execute(SCI_SETCARETSTYLE, CARETSTYLE_INVISIBLE);
 		Window::display();
 	}
 }
 
 
-void DocumentPeeker::scrollSnapshotWith(const MapPosition & mapPos)
+void DocumentSnapshot::scrollSnapshotWith(const MapPosition & mapPos)
 {
-	if (_pPeekerView)
+	if (_pSnapshotView)
 	{
 		bool hasBeenChanged = false;
 		//
@@ -123,31 +123,31 @@ void DocumentPeeker::scrollSnapshotWith(const MapPosition & mapPos)
 			hasBeenChanged = true;
 		}
 		if (hasBeenChanged)
-			::MoveWindow(_pPeekerView->getHSelf(), 0, 0, _rc.right - _rc.left, _rc.bottom - _rc.top, TRUE);
+			::MoveWindow(_pSnapshotView->getHSelf(), 0, 0, _rc.right - _rc.left, _rc.bottom - _rc.top, TRUE);
 		//
 		// Wrapping
 		//
-		_pPeekerView->wrap(mapPos._isWrap);
-		_pPeekerView->execute(SCI_SETWRAPINDENTMODE, mapPos._wrapIndentMode);
+		_pSnapshotView->wrap(mapPos._isWrap);
+		_pSnapshotView->execute(SCI_SETWRAPINDENTMODE, mapPos._wrapIndentMode);
 
 		//
 		// Reset to zero
 		//
-		_pPeekerView->execute(SCI_HOMEDISPLAY);
+		_pSnapshotView->execute(SCI_HOMEDISPLAY);
 
 		//
 		// Visible line for the code view
 		//
 
 		// scroll to the first visible display line
-		_pPeekerView->execute(SCI_LINESCROLL, 0,mapPos._firstVisibleDisplayLine);
+		_pSnapshotView->execute(SCI_LINESCROLL, 0,mapPos._firstVisibleDisplayLine);
 		
 	}
 }
 
-void DocumentPeeker::saveCurrentSnapshot(ScintillaEditView & editView)
+void DocumentSnapshot::saveCurrentSnapshot(ScintillaEditView & editView)
 {
-	if (_pPeekerView)
+	if (_pSnapshotView)
 	{
 		Buffer *buffer = editView.getCurrentBuffer();
 		MapPosition mapPos = buffer->getMapPosition();
@@ -158,7 +158,7 @@ void DocumentPeeker::saveCurrentSnapshot(ScintillaEditView & editView)
 		mapPos._nbLine = static_cast<int32_t>(editView.execute(SCI_LINESONSCREEN, mapPos._firstVisibleDisplayLine));
 		mapPos._lastVisibleDocLine = static_cast<int32_t>(editView.execute(SCI_DOCLINEFROMVISIBLE, mapPos._firstVisibleDisplayLine + mapPos._nbLine));
 
-		auto lineHeight = _pPeekerView->execute(SCI_TEXTHEIGHT, mapPos._firstVisibleDocLine);
+		auto lineHeight = _pSnapshotView->execute(SCI_TEXTHEIGHT, mapPos._firstVisibleDocLine);
 		mapPos._height = static_cast<int32_t>(mapPos._nbLine * lineHeight);
 
 		// Width

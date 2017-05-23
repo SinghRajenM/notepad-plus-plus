@@ -36,9 +36,9 @@ class Buffer;
 struct MapPosition;
 
 
-class DocumentPeeker : public StaticDialog {
+class DocumentSnapshot : public StaticDialog {
 public:
-	DocumentPeeker(): StaticDialog() {};
+	DocumentSnapshot(): StaticDialog() {};
 
 	void init(HINSTANCE hInst, HWND hPere) {
 		Window::init(hInst, hPere);
@@ -61,5 +61,5 @@ protected:
 	void goTo(POINT p);
 
 private:
-	ScintillaEditView *_pPeekerView = nullptr;
+	ScintillaEditView *_pSnapshotView = nullptr;
 };
