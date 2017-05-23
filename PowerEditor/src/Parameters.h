@@ -847,8 +847,8 @@ struct NppGUI final
 
 	bool _isFolderDroppedOpenFiles = false;
 
-	bool _isDocPeekOnTab = true;
-	bool _isDocPeekOnMap = false;
+	bool _isDocSnapshotOnTab = true;
+	bool _isDocSnapshotOnMap = false;
 };
 
 struct ScintillaViewParams
